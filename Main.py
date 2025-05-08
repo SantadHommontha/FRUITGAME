@@ -26,22 +26,32 @@ FRUIT_SIZE = 50
 fruit_speed = 5
 max_fruit_in_screen = 8
 
+
+# Iamge
+
+
+# Fruit Class
 class Fruit:
   
-    def __init__(self, x, y, color,speed):
+    def __init__(self, x, y, color,speed,size):
+        self.x = x
+        self.y = y
         self.rect = pygame.Rect(x, y, FRUIT_SIZE, FRUIT_SIZE)
         self.color = color
         self.speed = speed
+        self.size = size
 
     def fall(self):
-        self.rect.y += self.speed
+        self.y += self.speed
 
     def draw(self):
-        pygame.draw.rect(screen, self.color, self.rect)
+        pygame.draw.rect(screen, self.color, pygame.Rect(self.x,self.y,self.size,self.size))
 
     def Get_Y_Position(self):
         return self.rect.y
 
+
+# Function
 def Generate_Fruit():
     global fruits
     if len(fruits) >= max_fruit_in_screen :
@@ -61,7 +71,7 @@ def Create_Fruit():
     x = random.randint(0, WIDTH - FRUIT_SIZE)
     color = random.choice([RED, YELLOW, ORANGE])
     speed = random.choice([5,7,8])
-    fruits.append(Fruit(x, 0, color,speed))
+    fruits.append(Fruit(x, 0, color,speed,FRUIT_SIZE))
 
 
 def Micro_Bit_Serial():
