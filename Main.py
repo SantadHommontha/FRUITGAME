@@ -24,7 +24,7 @@ score = 0
 fruits = []
 FRUIT_SIZE = 50
 fruit_speed = 5
-max_fruit_in_screen = 8
+max_fruit_in_screen = 18
 
 
 # Iamge
@@ -36,7 +36,7 @@ class Fruit:
     def __init__(self, x, y, color,speed,size):
         self.x = x
         self.y = y
-        self.rect = pygame.Rect(x, y, FRUIT_SIZE, FRUIT_SIZE)
+        self.rect = pygame.Rect(x, y, size, size)
         self.color = color
         self.speed = speed
         self.size = size
