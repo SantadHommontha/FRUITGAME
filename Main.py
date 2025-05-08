@@ -22,33 +22,48 @@ ser = serial.Serial('COM5', 115200, timeout=0.1)
 # Game variables
 score = 0
 fruits = []
-FRUIT_SIZE = 50
+FRUIT_SIZE = 100
 fruit_speed = 5
-max_fruit_in_screen = 18
+max_fruit_in_screen = 8
 
-
+fruits_name = [
+    "Banana",
+    "Apple",
+    "Orange"
+]
 # Iamge
+fruit_image = {
+    name: pygame.image.load(f"{name}.png").convert_alpha() for name in fruits_name
+}
+fruit_image_reScale = {
+    name:pygame.transform.scale(image,(FRUIT_SIZE,FRUIT_SIZE)) for name,image in fruit_image.items()
+}
 
-
+    
+fruit_image = fruit_image_reScale
 # Fruit Class
 class Fruit:
-  
-    def __init__(self, x, y, color,speed,size):
+    
+    def __init__(self, x, y, speed,name,image):
         self.x = x
         self.y = y
-        self.rect = pygame.Rect(x, y, size, size)
-        self.color = color
+        self.image = image
+        self.name = name
+        #self.rect = pygame.Rect(x, y, size, size)
+
+       
         self.speed = speed
-        self.size = size
+      
 
     def fall(self):
         self.y += self.speed
 
     def draw(self):
-        pygame.draw.rect(screen, self.color, pygame.Rect(self.x,self.y,self.size,self.size))
+        #pygame.draw.rect(screen, self.color, pygame.Rect(self.x,self.y,self.size,self.size))
+        screen.blit(self.image,(self.x,self.y))
 
     def Get_Y_Position(self):
-        return self.rect.y
+        return self.y
 
 
 # Function
@@ -66,12 +81,13 @@ def Generate_Fruit():
         
        
 def Create_Fruit():
-    global RED,YELLOW,ORANGE
-    global WIDTH,FRUIT_SIZE
+    #global RED,YELLOW,ORANGE
+    global WIDTH,fruit_image,fruits_name
     x = random.randint(0, WIDTH - FRUIT_SIZE)
-    color = random.choice([RED, YELLOW, ORANGE])
+    #color = random.choice([RED, YELLOW, ORANGE])
+    name = random.choice(fruits_name)
     speed = random.choice([5,7,8])
-    fruits.append(Fruit(x, 0, color,speed,FRUIT_SIZE))
+    fruits.append(Fruit(x, 0,speed,name,fruit_image[name]))
 
 
 def Micro_Bit_Serial():
@@ -87,15 +103,15 @@ def Check_Fruit(input):
         return
 
     fruit_map = {
-        "B": YELLOW,
-        "A": RED,
-        "O": ORANGE
+        "B": "Banana",
+        "A": "Apple",
+        "O": "Orange"
     }
 
     
     
     for fruit in fruits[:]:
-       if fruit.color == fruit_map[input]:
+       if fruit.name == fruit_map[input]:
            fruits.remove(fruit)
            score += 1
            return
@@ -112,6 +128,13 @@ def Update_Fruit():
         fruit.draw()    
         if fruit.Get_Y_Position() > HEIGHT:
             fruits.remove(fruit)
+
+
+def DisplayScore():
+    global score
+    font = pygame.font.SysFont(None, 36)
+    score_text = font.render(f"Score: {score}",True,BLACK)
+    screen.blit(score_text,(10,10))
 # Main game loop
 running = True
 while running:
@@ -128,9 +151,10 @@ while running:
        
 
     # Display score
-    font = pygame.font.SysFont(None, 36)
-    score_text = font.render(f"Score: {score}", True, BLACK)
-    screen.blit(score_text, (10, 10))
+    # font = pygame.font.SysFont(None, 36)
+    # score_text = font.render(f"Score: {score}", True, BLACK)
+    # screen.blit(score_text, (10, 10))
+    DisplayScore()
 
     # Event handling
     for event in pygame.event.get():
