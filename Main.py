@@ -2,7 +2,7 @@ import pygame
 import serial
 import random
 
-# Initialize Pygame
+# Initialize
 pygame.init()
 WIDTH, HEIGHT = 800, 600
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -16,59 +16,106 @@ RED = (255, 0, 0)
 YELLOW = (255, 255, 0)
 ORANGE = (255, 165, 0)
 
-# Serial Setup (Adjust COM port as needed)
-ser = serial.Serial('COM5', 115200, timeout=1)
+# Serial Setup
+ser = serial.Serial('COM5', 115200, timeout=0.1)
 
 # Game variables
 score = 0
 fruits = []
 FRUIT_SIZE = 50
 fruit_speed = 5
+max_fruit_in_screen = 8
 
 class Fruit:
-    def __init__(self, x, y, color):
+  
+    def __init__(self, x, y, color,speed):
         self.rect = pygame.Rect(x, y, FRUIT_SIZE, FRUIT_SIZE)
         self.color = color
+        self.speed = speed
 
     def fall(self):
-        self.rect.y += fruit_speed
+        self.rect.y += self.speed
 
     def draw(self):
         pygame.draw.rect(screen, self.color, self.rect)
 
+    def Get_Y_Position(self):
+        return self.rect.y
+
+def Generate_Fruit():
+    global fruits
+    if len(fruits) >= max_fruit_in_screen :
+        return
+    
+    if len(fruits) == 0:
+        Create_Fruit()
+    
+
+    if random.randint(0,30) == 1:
+        Create_Fruit()
+        
+       
+def Create_Fruit():
+    global RED,YELLOW,ORANGE
+    global WIDTH,FRUIT_SIZE
+    x = random.randint(0, WIDTH - FRUIT_SIZE)
+    color = random.choice([RED, YELLOW, ORANGE])
+    speed = random.choice([5,7,8])
+    fruits.append(Fruit(x, 0, color,speed))
+
+
+def Micro_Bit_Serial():
+     if ser.in_waiting > 0:
+        command = ser.readline().decode().strip()
+        print(command)
+        Check_Fruit(command)
+      
+
+def Check_Fruit(input):
+    global RED,YELLOW,ORANGE,fruits,score
+    if len(fruits) == 0 : 
+        return
+
+    fruit_map = {
+        "B": YELLOW,
+        "A": RED,
+        "O": ORANGE
+    }
+
+    
+    
+    for fruit in fruits[:]:
+       if fruit.color == fruit_map[input]:
+           fruits.remove(fruit)
+           score += 1
+           return
+    score -= 1
+
+
+
+
+
+def Update_Fruit():
+    global fruits,HEIGHT
+    for fruit in fruits[:]:
+        fruit.fall()
+        fruit.draw()    
+        if fruit.Get_Y_Position() > HEIGHT:
+            fruits.remove(fruit)
 # Main game loop
 running = True
 while running:
     screen.fill(WHITE)
 
-    # Generate new fruits
-    if random.randint(1, 50) == 1:
-        x = random.randint(0, WIDTH - FRUIT_SIZE)
-        color = random.choice([RED, YELLOW])
-        fruits.append(Fruit(x, 0, color))
+    # Create fruits
+    Generate_Fruit()
 
     # Read Micro:bit input
-    if ser.in_waiting > 0:
-        command = ser.readline().decode().strip()
-        print(command)
-        for fruit in fruits[:]:
-            if command == 'O' and fruit.color == ORANGE:
-                fruits.remove(fruit)
-                score += 1
-            elif command == 'B' and fruit.color == YELLOW:
-                fruits.remove(fruit)
-                score += 1
-            elif command == 'A' and fruit.color == RED:
-                fruits.remove(fruit)
-               
-                score += 1
+    Micro_Bit_Serial()
 
-    # Update and draw fruits
-    for fruit in fruits[:]:
-        fruit.fall()
-        fruit.draw()
-        #if fruit.rect.y > HEIGHT:
-            #running = False  # Game over
+    # Update  fruits
+    Update_Fruit()
+       
 
     # Display score
     font = pygame.font.SysFont(None, 36)
