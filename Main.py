@@ -6,7 +6,7 @@ import random
 pygame.init()
 WIDTH, HEIGHT = 800, 600
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Fruit Defender")
+pygame.display.set_caption("Fruit Game")
 clock = pygame.time.Clock()
 
 # Colors
@@ -33,6 +33,18 @@ fruits_name = [
     "Apple",
     "Orange"
 ]
+
+fruit_map = {
+    "B": "Banana",
+    "A": "Apple",
+    "O": "Orange"
+}
+
+
+running = True
+
+
+
 # Iamge
 fruit_image = {
     name: pygame.image.load(f"{name}.png").convert_alpha() for name in fruits_name
@@ -43,6 +55,7 @@ fruit_image_reScale = {
 
     
 fruit_image = fruit_image_reScale
+
 # Fruit Class
 class Fruit:
     
@@ -51,17 +64,12 @@ class Fruit:
         self.y = y
         self.image = image
         self.name = name
-        #self.rect = pygame.Rect(x, y, size, size)
-
-       
         self.speed = speed
       
-
     def fall(self):
         self.y += self.speed
 
     def draw(self):
-        #pygame.draw.rect(screen, self.color, pygame.Rect(self.x,self.y,self.size,self.size))
         screen.blit(self.image,(self.x,self.y))
 
     def Get_Y_Position(self):
@@ -103,14 +111,7 @@ def Check_Fruit(input):
     if len(fruits) == 0 : 
         return
 
-    fruit_map = {
-        "B": "Banana",
-        "A": "Apple",
-        "O": "Orange"
-    }
-
-    
-    
+   
     for fruit in fruits[:]:
        if fruit.name == fruit_map[input]:
            fruits.remove(fruit)
@@ -129,7 +130,7 @@ def Update_Fruit():
         fruit.draw()    
         if fruit.Get_Y_Position() > HEIGHT:
             fruits.remove(fruit)
-            hp -= 1
+            #hp -= 1
 
 
 def DisplayScore():
@@ -177,7 +178,7 @@ def SetUpGame():
     game_over = False
 
 
-running = True
+
 while running:
     if not game_over :
         screen.fill(WHITE)
@@ -211,7 +212,7 @@ while running:
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE:
                 GameOver()
-
+    print(len(fruits))
     #Update Screen
     pygame.display.flip()
     clock.tick(30)
