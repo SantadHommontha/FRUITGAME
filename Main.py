@@ -2,22 +2,6 @@ import pygame
 import serial
 import random
 
-# Initialize
-pygame.init()
-WIDTH, HEIGHT = 800, 600
-screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Fruit Game")
-clock = pygame.time.Clock()
-
-# Colors
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
-RED = (255, 0, 0)
-YELLOW = (255, 255, 0)
-ORANGE = (255, 165, 0)
-
-# Serial Setup
-ser = serial.Serial('COM5', 115200, timeout=0.1)
 
 # Game variables
 hp = 3
@@ -43,6 +27,26 @@ fruit_map = {
 
 running = True
 
+WIDTH, HEIGHT = 800, 600
+
+
+# Colors
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+RED = (255, 0, 0)
+YELLOW = (255, 255, 0)
+ORANGE = (255, 165, 0)
+
+# Initialize
+pygame.init()
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("Fruit Game")
+clock = pygame.time.Clock()
+
+# Serial Setup
+#ser = serial.Serial('COM5', 115200, timeout=0.1)
+#ser = serial.Serial("/dev/ttyAPE0",baudrate=115200,timeout=0.1)
+
 
 
 # Iamge
@@ -56,15 +60,28 @@ fruit_image_reScale = {
     
 fruit_image = fruit_image_reScale
 
+
+back_ground = pygame.image.load("BackGround.jpg")
+back_ground = pygame.transform.scale(back_ground,(WIDTH,HEIGHT))
+
 # Fruit Class
 class Fruit:
     
+    def __init__(self, x, y, speed,name,image,slash_image):
+        self.x = x
+        self.y = y
+        self.image = image
+        self.name = name
+        self.speed = speed
+        self.slash_image = slash_image
+
     def __init__(self, x, y, speed,name,image):
         self.x = x
         self.y = y
         self.image = image
         self.name = name
         self.speed = speed
+        
       
     def fall(self):
         self.y += self.speed
@@ -74,6 +91,10 @@ class Fruit:
 
     def Get_Y_Position(self):
         return self.y
+
+    def Slash(self):
+        if self.slash_image:
+            screen.blit(self.imagel,(self.x,self.y))
 
 
 # Function
@@ -110,10 +131,10 @@ def Check_Fruit(input):
     global fruits,score
     if len(fruits) == 0 : 
         return
-
    
     for fruit in fruits[:]:
        if fruit.name == fruit_map[input]:
+           fruit.Slash()
            fruits.remove(fruit)
            score += 1
            return
@@ -181,13 +202,14 @@ def SetUpGame():
 
 while running:
     if not game_over :
-        screen.fill(WHITE)
-
+        #screen.fill(WHITE)
+        #BackGround
+        screen.blit(back_ground,(0,0))
         # Create fruits
         Generate_Fruit()
 
         # Read Micro:bit input
-        Micro_Bit_Serial()
+        #Micro_Bit_Serial()
 
         # Update  fruits
         Update_Fruit()
