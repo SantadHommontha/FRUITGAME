@@ -27,7 +27,7 @@ fruit_map = {
 
 running = True
 
-WIDTH, HEIGHT = 800, 600
+WIDTH, HEIGHT = 1360, 768
 
 
 # Colors
@@ -42,6 +42,9 @@ pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Fruit Game")
 clock = pygame.time.Clock()
+
+game_Time = 60
+timer = 0
 
 # Serial Setup
 #ser = serial.Serial('COM5', 115200, timeout=0.1)
@@ -61,7 +64,7 @@ fruit_image_reScale = {
 fruit_image = fruit_image_reScale
 
 
-back_ground = pygame.image.load("BackGround.jpg")
+back_ground = pygame.image.load("bg-gameplay.png")
 back_ground = pygame.transform.scale(back_ground,(WIDTH,HEIGHT))
 
 # Fruit Class
@@ -113,7 +116,7 @@ def Generate_Fruit():
        
 def Create_Fruit():
    
-    x = random.randint(0, WIDTH - FRUIT_SIZE)
+    x = random.randint(130, WIDTH - FRUIT_SIZE)
    
     name = random.choice(fruits_name)
     speed = random.choice([5,7,8])
@@ -133,7 +136,7 @@ def Check_Fruit(input):
         return
    
     for fruit in fruits[:]:
-       if fruit.name == fruit_map[input]:
+       if fruit.name == fruit_map[input] and fruit.Get_Y_Position() > HEIGHT:
            fruit.Slash()
            fruits.remove(fruit)
            score += 1
@@ -240,4 +243,4 @@ while running:
     clock.tick(30)
 
 pygame.quit()
-ser.close()
+#ser.close()
