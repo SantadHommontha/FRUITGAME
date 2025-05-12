@@ -43,7 +43,7 @@ screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Fruit Game")
 clock = pygame.time.Clock()
 
-game_Time = 60
+game_Time = 5
 timer = 0
 
 start_tick = 0
@@ -184,11 +184,11 @@ def DisplayScore():
     score_text = font.render(f"Score: {score}",True,BLACK)
     screen.blit(score_text,(10,10))
 
-def DiaplayHP():
+def DiaplayTime():
     font = pygame.font.SysFont(None,36)
-    hp_text = font.render(f"HP: {hp}",True,BLACK)
-    text_width,text_height = hp_text.get_size()
-    screen.blit(hp_text,(WIDTH - text_width - 10,10))
+    timer_text = font.render(f"Time: {timer}",True,BLACK)
+    text_width,text_height = timer_text.get_size()
+    screen.blit(timer_text,(WIDTH - text_width - 10,10))
 
 def GameOver():
     screen.fill(BLACK)
@@ -208,10 +208,10 @@ def GameOver():
     text_width, text_height = gameOver.get_size()
     screen.blit(gameOver,((WIDTH / 2) - (text_width / 2 ), HEIGHT / 2))
 
-    if ser.in_waiting > 0:
-        command = ser.readline().decode().strip()
-        if command == "B":
-            SetUpGame()
+    # if ser.in_waiting > 0:
+    #     command = ser.readline().decode().strip()
+    #     if command == "B":
+    #         SetUpGame()
 
 
 
@@ -221,37 +221,65 @@ def SetUpGame():
     score = 0
     fruits = []
     game_over = False
+    start_tick = pygame.time.get_ticks()
+    
 
 
 
+def Change_State(new_state):
+    global game_state
+    print(f"In State {new_state}")
+    game_state = new_state
+    if game_state == state["M"]:
+        pass
+    elif game_state == state["S"]:
+        
+        SetUpGame()
+        Change_State(state["P"])
+        pass
+    elif game_state == state["P"]:
+        pass
+    elif game_state == state["G"]:
+        pass
 
-
-
+Change_State(state["S"])
 while running:
-    if not game_over :
-        #screen.fill(WHITE)
+    print(f"Current State: {game_state}")
+    if game_state == state["M"]:
+        pass
+    elif game_state == state["S"]:
+        pass
+    elif game_state == state["P"]:
+        
+        if not game_over :
+        
         #BackGround
-        screen.blit(back_ground,(0,0))
+            screen.blit(back_ground,(0,0))
         # Create fruits
-        Generate_Fruit()
+            Generate_Fruit()
        
         # Read Micro:bit input
         #Micro_Bit_Serial()
 
         # Update  fruits
-        Update_Fruit()
+            Update_Fruit()
         # Time
-        elapsed_time = (pygame.time.get_ticks() - start_tick) / 1000
-        remaining_time = max(0,game_Time - int(elapsed_time))
-        
-        
+            elapsed_time = (pygame.time.get_ticks() - start_tick) / 1000
+            timer = max(0,game_Time - int(elapsed_time))
+
+            if timer <= 0:
+                Change_State(state["G"])
        
         # Display UI
-        DisplayScore()
-        DiaplayHP()
+            DisplayScore()
+            DiaplayTime()
 
-    else:
+        
+            
+    elif game_state == state["G"]:
         GameOver()
+        pass
+   
 
 
     # Chack HP
