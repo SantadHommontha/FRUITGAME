@@ -4,7 +4,9 @@ import random
 
 
 # Game variables
-hp = 3
+grape_score = 0
+tomato_score = 0
+orange_score = 0
 score = 0
 fruits = []
 FRUIT_SIZE = 100
@@ -43,7 +45,7 @@ screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Fruit Game")
 clock = pygame.time.Clock()
 
-game_Time = 5
+game_Time = 60
 timer = 0
 
 start_tick = 0
@@ -106,6 +108,14 @@ class Fruit:
 
     def Hit(self):
         self.is_hit = True
+        global grape_score,tomato_score,tomato_score
+        if self.name == "Grape":
+            grape_score += 1
+        elif self.name == "Tomato":
+            tomato_score += 1
+        elif self.name == "Orange":
+            orange_score += 1
+            
         screen.blit(self.hit_image,(self.x,self.y))
 
 
@@ -153,6 +163,7 @@ def Input_Test(event):
 def Check_Fruit(input):
     print(fruit_map[input])
     global fruits,score
+    global grape_score,tomato_score,tomato_score
     if len(fruits) == 0 : 
         return
    
@@ -160,9 +171,15 @@ def Check_Fruit(input):
        if fruit.name == fruit_map[input] and not fruit.is_hit:
            fruit.Hit()
            fruits.remove(fruit)
-           score += 1
+           #score += 1
            return
-    score -= 1
+    name = random.choice(fruits_name)
+    if name == "Grape":
+        grape_score -= 1
+    elif name == "Tomato":
+        tomato_score -= 1
+    elif name == "Orange":
+        orange_score -= 1
 
 
 
@@ -179,10 +196,20 @@ def Update_Fruit():
 
 
 def DisplayScore():
-    
+    #Grape
     font = pygame.font.SysFont(None, 36)
-    score_text = font.render(f"Score: {score}",True,BLACK)
-    screen.blit(score_text,(10,10))
+    score_text = font.render(f"{grape_score}",True,BLACK)
+    screen.blit(score_text,(WIDTH *0.085,HEIGHT * 0.18))
+    
+    #Tomato
+    font = pygame.font.SysFont(None, 36)
+    score_text = font.render(f"{tomato_score}",True,BLACK)
+    screen.blit(score_text,(WIDTH *0.085,HEIGHT * 0.50))
+    
+    #Orange
+    font = pygame.font.SysFont(None, 36)
+    score_text = font.render(f"{orange_score}",True,BLACK)
+    screen.blit(score_text,(WIDTH *0.085,HEIGHT * 0.83))
 
 def DiaplayTime():
     font = pygame.font.SysFont(None,36)
@@ -217,8 +244,9 @@ def GameOver():
 
 def SetUpGame():
     global hp,score,fruits,game_over
-    hp = 3
-    score = 0
+    rape_score = 0
+    tomato_score = 0
+    orange_score = 0
     fruits = []
     game_over = False
     start_tick = pygame.time.get_ticks()
@@ -228,7 +256,6 @@ def SetUpGame():
 
 def Change_State(new_state):
     global game_state
-    print(f"In State {new_state}")
     game_state = new_state
     if game_state == state["M"]:
         pass
@@ -244,7 +271,6 @@ def Change_State(new_state):
 
 Change_State(state["S"])
 while running:
-    print(f"Current State: {game_state}")
     if game_state == state["M"]:
         pass
     elif game_state == state["S"]:
@@ -282,9 +308,7 @@ while running:
    
 
 
-    # Chack HP
-    if hp <= 0:
-        game_over = True
+   
 
     # Event handling
     for event in pygame.event.get():
