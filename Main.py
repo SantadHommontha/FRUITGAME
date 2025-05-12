@@ -45,7 +45,7 @@ screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Fruit Game")
 clock = pygame.time.Clock()
 
-game_Time = 60
+game_Time = 10
 timer = 0
 
 start_tick = 0
@@ -106,20 +106,28 @@ class Fruit:
         self.speed = speed
         self.hit_image = hit_image
         self.is_hit = False
-  
+        self.is_dead = False
         
       
     def fall(self):
         self.y += self.speed
 
     def draw(self):
-        screen.blit(self.image,(self.x,self.y))
+        if(self.is_hit):
+            screen.blit(self.hit_image,(self.x,self.y))
+            self.elapsed_time = (pygame.time.get_ticks() - self.start_tick) / 1000
+            self.timer = (0.2 - self.elapsed_time)
+            if self.timer <= 0:
+                self.is_dead = True
+        else:
+            screen.blit(self.image,(self.x,self.y))
 
     def Get_Y_Position(self):
         return self.y
 
     def Hit(self):
         self.is_hit = True
+        
         global grape_score,tomato_score,orange_score
         if self.name == "Grape":
             grape_score += 1
@@ -127,8 +135,8 @@ class Fruit:
             tomato_score += 1
         elif self.name == "Orange":
             orange_score += 1
-            
-        screen.blit(self.hit_image,(self.x,self.y))
+        self.start_tick = pygame.time.get_ticks()
+       
 
 
 # Function
@@ -182,7 +190,7 @@ def Check_Fruit(input):
     for fruit in fruits[:]:
        if fruit.name == fruit_map[input] and not fruit.is_hit:
            fruit.Hit()
-           fruits.remove(fruit)
+           #fruits.remove(fruit)
            #score += 1
            return
     name = random.choice(fruits_name)
@@ -205,6 +213,8 @@ def Update_Fruit():
         if fruit.Get_Y_Position() > HEIGHT:
             fruits.remove(fruit)
             #hp -= 1
+        if fruit.is_dead:
+            fruits.remove(fruit)
 
 
 def DisplayScore():
@@ -243,7 +253,7 @@ def GameOver():
     screen.blit(gameOver,((WIDTH / 2) - (text_width / 2 ), HEIGHT / 5))
 
     font = pygame.font.SysFont(None, 60)
-    gameOver = font.render(f"Score: {score}",True,WHITE)
+    gameOver = font.render(f"Score Sum: {grape_score + tomato_score + orange_score}",True,WHITE)
     text_width, text_height = gameOver.get_size()
     screen.blit(gameOver,((WIDTH / 2) - (text_width / 2 ), HEIGHT / 3))
 
@@ -291,6 +301,26 @@ def Change_State(new_state):
 
 Change_State(state["M"])
 while running:
+    
+     # Event handling
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+        if game_state == state["M"]:
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    Change_State(state["S"])
+        elif game_state == state["S"]:
+        
+           
+            pass
+        elif game_state == state["P"]:
+            Input_Test(event)
+        elif game_state == state["G"]:
+            pass
+    
+    
+    
     if game_state == state["M"]:
        
         pass
@@ -332,22 +362,7 @@ while running:
 
    
 
-    # Event handling
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-        if game_state == state["M"]:
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_SPACE:
-                    Change_State(state["S"])
-        elif game_state == state["S"]:
-        
-           
-            pass
-        elif game_state == state["P"]:
-            Input_Test(event)
-        elif game_state == state["G"]:
-            pass
+   
         
     #print(len(fruits))
     #Update Screen
