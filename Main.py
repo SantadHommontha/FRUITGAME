@@ -81,6 +81,12 @@ fruit_hit_image = {
     name:pygame.image.load(f'{name}_Hit.png').convert_alpha() for name in fruits_name
 }
 
+fruit_hit_image_reScale = {
+    name:pygame.transform.scale(image,(FRUIT_SIZE,FRUIT_SIZE)) for name,image in fruit_hit_image.items()
+}
+
+fruit_hit_image = fruit_hit_image_reScale
+
 menu_background = pygame.image.load("bg-startscene.png").convert_alpha()
 menu_background = pygame.transform.scale(menu_background,(WIDTH,HEIGHT))
 
