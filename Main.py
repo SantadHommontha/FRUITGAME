@@ -80,6 +80,12 @@ fruit_image = fruit_image_reScale
 fruit_hit_image = {
     name:pygame.image.load(f'{name}_Hit.png').convert_alpha() for name in fruits_name
 }
+
+menu_background = pygame.image.load("bg-startscene.png").convert_alpha()
+menu_background = pygame.transform.scale(menu_background,(WIDTH,HEIGHT))
+
+
+
 back_ground = pygame.image.load("bg-gameplay.png")
 back_ground = pygame.transform.scale(back_ground,(WIDTH,HEIGHT))
 
@@ -108,7 +114,7 @@ class Fruit:
 
     def Hit(self):
         self.is_hit = True
-        global grape_score,tomato_score,tomato_score
+        global grape_score,tomato_score,orange_score
         if self.name == "Grape":
             grape_score += 1
         elif self.name == "Tomato":
@@ -163,7 +169,7 @@ def Input_Test(event):
 def Check_Fruit(input):
     print(fruit_map[input])
     global fruits,score
-    global grape_score,tomato_score,tomato_score
+    global grape_score,tomato_score,tomato_score,orange_score
     if len(fruits) == 0 : 
         return
    
@@ -199,23 +205,29 @@ def DisplayScore():
     #Grape
     font = pygame.font.SysFont(None, 36)
     score_text = font.render(f"{grape_score}",True,BLACK)
-    screen.blit(score_text,(WIDTH *0.085,HEIGHT * 0.18))
+    score_rect = score_text.get_rect()
+    score_rect.center = (WIDTH *0.09,HEIGHT * 0.19)
+    screen.blit(score_text,score_rect)
     
     #Tomato
     font = pygame.font.SysFont(None, 36)
     score_text = font.render(f"{tomato_score}",True,BLACK)
-    screen.blit(score_text,(WIDTH *0.085,HEIGHT * 0.50))
+    score_rect = score_text.get_rect()
+    score_rect.center = (WIDTH *0.09,HEIGHT * 0.52)
+    screen.blit(score_text,score_rect)
     
     #Orange
     font = pygame.font.SysFont(None, 36)
     score_text = font.render(f"{orange_score}",True,BLACK)
-    screen.blit(score_text,(WIDTH *0.085,HEIGHT * 0.83))
+    score_rect = score_text.get_rect()
+    score_rect.center = (WIDTH *0.09,HEIGHT * 0.84)
+    screen.blit(score_text,score_rect)
 
 def DiaplayTime():
-    font = pygame.font.SysFont(None,36)
-    timer_text = font.render(f"Time: {timer}",True,BLACK)
+    font = pygame.font.SysFont(None,56)
+    timer_text = font.render(f"{timer}",True,BLACK)
     text_width,text_height = timer_text.get_size()
-    screen.blit(timer_text,(WIDTH - text_width - 10,10))
+    screen.blit(timer_text,(WIDTH * 0.87,HEIGHT * 0.09))
 
 def GameOver():
     screen.fill(BLACK)
@@ -243,8 +255,8 @@ def GameOver():
 
 
 def SetUpGame():
-    global hp,score,fruits,game_over
-    rape_score = 0
+    global hp,grape_score,tomato_score,orange_score,fruits,game_over,start_tick
+    grape_score = 0
     tomato_score = 0
     orange_score = 0
     fruits = []
@@ -256,9 +268,11 @@ def SetUpGame():
 
 def Change_State(new_state):
     global game_state
+    print(f"New {new_state}")
     game_state = new_state
     if game_state == state["M"]:
-        pass
+        screen.blit(menu_background,(0,0))
+        
     elif game_state == state["S"]:
         
         SetUpGame()
@@ -269,10 +283,12 @@ def Change_State(new_state):
     elif game_state == state["G"]:
         pass
 
-Change_State(state["S"])
+Change_State(state["M"])
 while running:
     if game_state == state["M"]:
+       
         pass
+            
     elif game_state == state["S"]:
         pass
     elif game_state == state["P"]:
@@ -314,12 +330,19 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_SPACE:
-                GameOver()
-            if event.key == pygame.K_ESCAPE:
-                running = False
-        Input_Test(event)
+        if game_state == state["M"]:
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    Change_State(state["S"])
+        elif game_state == state["S"]:
+        
+           
+            pass
+        elif game_state == state["P"]:
+            Input_Test(event)
+        elif game_state == state["G"]:
+            pass
+        
     #print(len(fruits))
     #Update Screen
     pygame.display.flip()
