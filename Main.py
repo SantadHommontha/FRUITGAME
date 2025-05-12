@@ -13,14 +13,14 @@ game_over = False;
 max_fruit_in_screen = 8
 
 fruits_name = [
-    "Banana",
-    "Apple",
+    "Grape",
+    "Tomato",
     "Orange"
 ]
 
 fruit_map = {
-    "B": "Banana",
-    "A": "Apple",
+    "G": "Grape",
+    "T": "Tomato",
     "O": "Orange"
 }
 
@@ -46,11 +46,23 @@ clock = pygame.time.Clock()
 game_Time = 60
 timer = 0
 
+start_tick = 0
+
 # Serial Setup
 #ser = serial.Serial('COM5', 115200, timeout=0.1)
 #ser = serial.Serial("/dev/ttyAPE0",baudrate=115200,timeout=0.1)
 
-
+# MainMenu
+# SetUp
+# Play
+# GameOver
+state = {
+    "M": "MainMenu",
+    "S": "SetUp",
+    "P":"Play",
+    "G":"GameOver"
+}
+game_state = state["M"]
 
 # Iamge
 fruit_image = {
@@ -63,27 +75,24 @@ fruit_image_reScale = {
     
 fruit_image = fruit_image_reScale
 
-
+fruit_hit_image = {
+    name:pygame.image.load(f'{name}_Hit.png').convert_alpha() for name in fruits_name
+}
 back_ground = pygame.image.load("bg-gameplay.png")
 back_ground = pygame.transform.scale(back_ground,(WIDTH,HEIGHT))
 
 # Fruit Class
 class Fruit:
     
-    def __init__(self, x, y, speed,name,image,slash_image):
+    def __init__(self, x, y, speed,name,image,hit_image):
         self.x = x
         self.y = y
         self.image = image
         self.name = name
         self.speed = speed
-        self.slash_image = slash_image
-
-    def __init__(self, x, y, speed,name,image):
-        self.x = x
-        self.y = y
-        self.image = image
-        self.name = name
-        self.speed = speed
+        self.hit_image = hit_image
+        self.is_hit = False
+  
         
       
     def fall(self):
@@ -95,9 +104,9 @@ class Fruit:
     def Get_Y_Position(self):
         return self.y
 
-    def Slash(self):
-        if self.slash_image:
-            screen.blit(self.imagel,(self.x,self.y))
+    def Hit(self):
+        self.is_hit = True
+        screen.blit(self.hit_image,(self.x,self.y))
 
 
 # Function
@@ -120,7 +129,7 @@ def Create_Fruit():
    
     name = random.choice(fruits_name)
     speed = random.choice([5,7,8])
-    fruits.append(Fruit(x, 0,speed,name,fruit_image[name]))
+    fruits.append(Fruit(x, 0,speed,name,fruit_image[name],fruit_hit_image[name]))
 
 
 def Micro_Bit_Serial():
@@ -128,16 +137,28 @@ def Micro_Bit_Serial():
         command = ser.readline().decode().strip()
         print(command)
         Check_Fruit(command)
-      
+
+def Input_Test(event):
+   
+    if event.type == pygame.KEYDOWN:
+        if event.key == pygame.K_g:
+            Check_Fruit("G")
+            
+        if event.key == pygame.K_t:
+            Check_Fruit("T")
+                
+        if event.key == pygame.K_o:
+            Check_Fruit("O")
 
 def Check_Fruit(input):
+    print(fruit_map[input])
     global fruits,score
     if len(fruits) == 0 : 
         return
    
     for fruit in fruits[:]:
-       if fruit.name == fruit_map[input] and fruit.Get_Y_Position() > HEIGHT:
-           fruit.Slash()
+       if fruit.name == fruit_map[input] and not fruit.is_hit:
+           fruit.Hit()
            fruits.remove(fruit)
            score += 1
            return
@@ -203,6 +224,9 @@ def SetUpGame():
 
 
 
+
+
+
 while running:
     if not game_over :
         #screen.fill(WHITE)
@@ -210,14 +234,18 @@ while running:
         screen.blit(back_ground,(0,0))
         # Create fruits
         Generate_Fruit()
-
+       
         # Read Micro:bit input
         #Micro_Bit_Serial()
 
         # Update  fruits
         Update_Fruit()
+        # Time
+        elapsed_time = (pygame.time.get_ticks() - start_tick) / 1000
+        remaining_time = max(0,game_Time - int(elapsed_time))
+        
+        
        
-
         # Display UI
         DisplayScore()
         DiaplayHP()
@@ -237,7 +265,10 @@ while running:
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE:
                 GameOver()
-    print(len(fruits))
+            if event.key == pygame.K_ESCAPE:
+                running = False
+        Input_Test(event)
+    #print(len(fruits))
     #Update Screen
     pygame.display.flip()
     clock.tick(30)
