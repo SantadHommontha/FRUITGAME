@@ -1,11 +1,11 @@
-# Imports go at the top
 from microbit import *
 
 uart.init(115200)
+
 pin0_is_Touch = False
 pin1_is_Touch = False
 pin2_is_Touch = False
-# Code in a 'while True:' loop repeats forever
+
 while True:
     if pin0.is_touched() and not pin0_is_Touch:
        display.show(0)

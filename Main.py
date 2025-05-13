@@ -4,29 +4,44 @@ import random
 
 
 pygame.init()
-
+#Serial Setup
+ser = serial.Serial('COM5', 115200, timeout=0.1) # Windows
+##ser = serial.Serial("/dev/ttyAPE0",baudrate=115200,timeout=0.1) # raspberry pi
 
 # Game variables
+# Score
 grape_score = 0
 tomato_score = 0
 orange_score = 0
 mistake_score = 0
-score = 0
-spawn_rate  = 30
-fruits = []
-WIDTH, HEIGHT = 1360, 768
-FRUIT_SIZE = round( WIDTH * 0.0735)
-fruit_speed = 5
-game_over = False;
-##font_size =  round(WIDTH * 0.0264)
-max_fruit_in_screen = 80
 
+is_fullScreen = True
+running = True
+
+# Game Screen Size
+WIDTH, HEIGHT = 1360, 768
+
+
+
+# Time
+game_Time = 60
+timer = 0
+start_tick = 0
 
 # Font
 font_path = "CherryBombOne-Regular.ttf"
 font_small = pygame.font.Font(font_path,36)
 font_medium = pygame.font.Font(font_path,60)
 font_large = pygame.font.Font(font_path,100)
+
+# Fruit Properties
+spawn_rate  = 30
+max_fruit_in_screen = 10
+fruits = []
+fruit_speed = 5
+FRUIT_SIZE = 100
+
+
 fruits_name = [
     "Grape",
     "Tomato",
@@ -39,12 +54,6 @@ fruit_map = {
     "O": "Orange"
 }
 
-
-running = True
-
-
-
-
 # Colors
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -53,24 +62,44 @@ YELLOW = (255, 255, 0)
 ORANGE = (255, 165, 0)
 
 # Initialize
-
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Fruit Game")
 clock = pygame.time.Clock()
 
-game_Time = 10
-timer = 0
 
-start_tick = 0
+# Iamge
+# Load Fruit Image
+fruit_image = {
+    name: pygame.image.load(f"{name}.png").convert_alpha() for name in fruits_name
+}
+# Change Fruit Scale
+fruit_image_reScale = {
+    name:pygame.transform.scale(image,(FRUIT_SIZE,FRUIT_SIZE)) for name,image in fruit_image.items()
+}
 
-#Serial Setup
-#ser = serial.Serial('COM5', 115200, timeout=0.1)
-ser = serial.Serial("/dev/ttyAPE0",baudrate=115200,timeout=0.1)
+fruit_image = fruit_image_reScale
 
-# MainMenu
-# SetUp
-# Play
-# GameOver
+# Load Fruit Hit Image
+fruit_hit_image = {
+    name:pygame.image.load(f'{name}_Hit.png').convert_alpha() for name in fruits_name
+}
+# Change Fruit Hit Scale
+fruit_hit_image_reScale = {
+    name:pygame.transform.scale(image,(FRUIT_SIZE,FRUIT_SIZE)) for name,image in fruit_hit_image.items()
+}
+
+fruit_hit_image = fruit_hit_image_reScale
+
+# Load Menu background Image
+menu_background = pygame.image.load("bg-startscene.png").convert_alpha()
+menu_background = pygame.transform.scale(menu_background,(WIDTH,HEIGHT))
+
+
+# Load play background Image
+back_ground = pygame.image.load("bg-gameplay.png")
+back_ground = pygame.transform.scale(back_ground,(WIDTH,HEIGHT))
+
+# Game State
 state = {
     "M": "MainMenu",
     "S": "SetUp",
@@ -79,35 +108,7 @@ state = {
 }
 game_state = state["M"]
 
-# Iamge
-fruit_image = {
-    name: pygame.image.load(f"{name}.png").convert_alpha() for name in fruits_name
-}
-fruit_image_reScale = {
-    name:pygame.transform.scale(image,(FRUIT_SIZE,FRUIT_SIZE)) for name,image in fruit_image.items()
-}
-
     
-fruit_image = fruit_image_reScale
-
-fruit_hit_image = {
-    name:pygame.image.load(f'{name}_Hit.png').convert_alpha() for name in fruits_name
-}
-
-fruit_hit_image_reScale = {
-    name:pygame.transform.scale(image,(FRUIT_SIZE,FRUIT_SIZE)) for name,image in fruit_hit_image.items()
-}
-
-fruit_hit_image = fruit_hit_image_reScale
-
-menu_background = pygame.image.load("bg-startscene.png").convert_alpha()
-menu_background = pygame.transform.scale(menu_background,(WIDTH,HEIGHT))
-
-
-
-back_ground = pygame.image.load("bg-gameplay.png")
-back_ground = pygame.transform.scale(back_ground,(WIDTH,HEIGHT))
-
 # Fruit Class
 class Fruit:
     
@@ -121,7 +122,6 @@ class Fruit:
         self.is_hit = False
         self.is_dead = False
         
-      
     def fall(self):
         self.y += self.speed
 
@@ -153,14 +153,22 @@ class Fruit:
 
 
 # Function
+def Toggle_FullScreen():
+    global is_fullScreen,screen
+    
+    if is_fullScreen:
+        screen = pygame.display.set_mode((WIDTH,HEIGHT),pygame.FULLSCREEN)
+    else:
+        screen = pygame.display.set_mode((WIDTH,HEIGHT))
+
+    is_fullScreen = not is_fullScreen
+
 def Generate_Fruit():
     if len(fruits) >= max_fruit_in_screen :
         return
     
     if len(fruits) == 0:
         Create_Fruit()
-    
-
     else:
         if random.randint(1,spawn_rate ) == 1:
             Create_Fruit()
@@ -192,10 +200,7 @@ def Micro_Bit_Serial():
             if command in fruit_map:
                 Change_State(state["S"])
 
-def Input_Test(event):
-   
-   
-            
+def Input_Test(event):  
     if game_state == state["M"]:
          if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_g or event.key == pygame.K_t or  event.key == pygame.K_o:
@@ -204,10 +209,8 @@ def Input_Test(event):
          if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_g:
                 Check_Fruit("G")
-            
             if event.key == pygame.K_t:
-                Check_Fruit("A")
-                
+                Check_Fruit("A")     
             if event.key == pygame.K_o:
                 Check_Fruit("O")
     elif game_state == state["G"]:
@@ -216,16 +219,12 @@ def Input_Test(event):
               Change_State(state["S"])
 
 def Check_Fruit(input):
-    print("----------")
-    global fruits,score
-    global grape_score,tomato_score,tomato_score,orange_score,mistake_score
+    global fruits , mistake_score
     if len(fruits) == 0 : 
         return
-   
     for fruit in fruits[:]:
-        print("GGGGGGGGGG")
         if fruit.name == fruit_map[input] and not fruit.is_hit:
-            print("JJJJJ")
+            
             fruit.Hit()
             return
     mistake_score += 1
@@ -241,7 +240,6 @@ def Update_Fruit():
         fruit.draw()    
         if fruit.Get_Y_Position() > HEIGHT and not fruit.is_dead:
             fruits.remove(fruit)
-            #hp -= 1
         if fruit.is_dead:
             fruits.remove(fruit)
 
@@ -267,7 +265,6 @@ def DisplayScore():
 
 def DiaplayTime():
     timer_text = font_medium.render(f"{timer}",True,BLACK)
-    text_width,text_height = timer_text.get_size()
     timer_rect = timer_text.get_rect()
     timer_rect.center = (WIDTH  - 150,80)
     screen.blit(timer_text,timer_rect)
@@ -279,37 +276,26 @@ def GameOver():
     text_width, text_height = gameOver.get_size()
     screen.blit(gameOver,((WIDTH / 2) - (text_width / 2 ), HEIGHT / 5))
 
-  
     gameOver = font_medium.render(f"Score Sum: {(grape_score + tomato_score + orange_score) - mistake_score}",True,WHITE)
     text_width, text_height = gameOver.get_size()
     screen.blit(gameOver,((WIDTH / 2) - (text_width / 2 ), HEIGHT / 3))
-
-
- 
+    
     gameOver = font_medium.render("Touch Any Fruit To Play Again",True,WHITE)
     text_width, text_height = gameOver.get_size()
     screen.blit(gameOver,((WIDTH / 2) - (text_width / 2 ), HEIGHT / 2))
 
-    # if ser.in_waiting > 0:
-    #     command = ser.readline().decode().strip()
-    #     if command == "B":
-    #         SetUpGame()
 
 
 
 def SetUpGame():
-    global hp,grape_score,tomato_score,orange_score,fruits,game_over,start_tick,mistake_score
+    global hp,grape_score,tomato_score,orange_score,fruits,start_tick,mistake_score
     mistake_score = 0
     grape_score = 0
     tomato_score = 0
     orange_score = 0
     fruits = []
-    game_over = False
     start_tick = pygame.time.get_ticks()
     
-
-
-
 def Change_State(new_state):
     global game_state
     print(f"New {new_state}")
@@ -328,8 +314,10 @@ def Change_State(new_state):
         pass
 
 Change_State(state["M"])
+#Toggle_FullScreen()
+# Main Loop
 while running:
-    
+    print(game_state)
      # Event handling
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -337,9 +325,12 @@ while running:
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 running = False
+            if event.key == pygame.K_f:
+                Toggle_FullScreen()
             
         if game_state == state["M"]:
             Input_Test(event)
+            Micro_Bit_Serial()
         elif game_state == state["S"]:
             pass
         elif game_state == state["P"]:
@@ -348,56 +339,41 @@ while running:
         elif game_state == state["G"]:
             Input_Test(event)
             pass
-    
-    
+        
     
     if game_state == state["M"]:
-       
-        pass
-            
+       screen.blit(menu_background,(0,0))
+               
     elif game_state == state["S"]:
         pass
     elif game_state == state["P"]:
         
-        if not game_over :
-        
-        #BackGround
-            screen.blit(back_ground,(0,0))
+        # BackGround
+        screen.blit(back_ground,(0,0))    
         # Create fruits
-            Generate_Fruit()
-       
-        # Read Micro:bit input
-            Micro_Bit_Serial()
-
+        Generate_Fruit()
+        # Read Micro:bit serial
+        Micro_Bit_Serial()
         # Update  fruits
-            Update_Fruit()
-        # Time
-            elapsed_time = (pygame.time.get_ticks() - start_tick) / 1000
-            timer = max(0,game_Time - int(elapsed_time))
-
-            if timer <= 0:
-                Change_State(state["G"])
-       
-        # Display UI
-            DisplayScore()
-            DiaplayTime()
-
+        Update_Fruit()
         
-            
+        # Time
+        elapsed_time = (pygame.time.get_ticks() - start_tick) / 1000
+        timer = max(0,game_Time - int(elapsed_time))
+
+        if timer <= 0:
+            Change_State(state["G"]) 
+        # Display UI
+        DisplayScore()
+        DiaplayTime()
+        
     elif game_state == state["G"]:
         GameOver()
         pass
-   
-
-
-   
-
-   
-        
     #print(len(fruits))
     #Update Screen
     pygame.display.flip()
     clock.tick(30)
 
 pygame.quit()
-#ser.close()
+ser.close()
