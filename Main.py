@@ -3,6 +3,9 @@ import serial
 import random
 
 
+pygame.init()
+
+
 # Game variables
 grape_score = 0
 tomato_score = 0
@@ -14,9 +17,15 @@ WIDTH, HEIGHT = 1360, 768
 FRUIT_SIZE = round( WIDTH * 0.0735)
 fruit_speed = 5
 game_over = False;
-font_size =  round(WIDTH * 0.0264)
+##font_size =  round(WIDTH * 0.0264)
 max_fruit_in_screen = 80
 
+
+# Font
+font_path = "CherryBombOne-Regular.ttf"
+font_small = pygame.font.Font(font_path,36)
+font_medium = pygame.font.Font(font_path,60)
+font_large = pygame.font.Font(font_path,100)
 fruits_name = [
     "Grape",
     "Tomato",
@@ -43,7 +52,7 @@ YELLOW = (255, 255, 0)
 ORANGE = (255, 165, 0)
 
 # Initialize
-pygame.init()
+
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Fruit Game")
 clock = pygame.time.Clock()
@@ -222,47 +231,45 @@ def Update_Fruit():
 
 def DisplayScore():
     #Grape
-    font = pygame.font.SysFont(None, font_size)
-    score_text = font.render(f"{grape_score}",True,BLACK)
+    score_text = font_small.render(f"{grape_score}",True,BLACK)
     score_rect = score_text.get_rect()
     score_rect.center = (WIDTH *0.09,HEIGHT * 0.19)
     screen.blit(score_text,score_rect)
     
     #Tomato
-    font = pygame.font.SysFont(None, font_size)
-    score_text = font.render(f"{tomato_score}",True,BLACK)
+    score_text = font_small.render(f"{tomato_score}",True,BLACK)
     score_rect = score_text.get_rect()
     score_rect.center = (WIDTH *0.09,HEIGHT * 0.52)
     screen.blit(score_text,score_rect)
     
     #Orange
-    font = pygame.font.SysFont(None, font_size)
-    score_text = font.render(f"{orange_score}",True,BLACK)
+    score_text = font_small.render(f"{orange_score}",True,BLACK)
     score_rect = score_text.get_rect()
     score_rect.center = (WIDTH *0.09,HEIGHT * 0.84)
     screen.blit(score_text,score_rect)
 
 def DiaplayTime():
-    font = pygame.font.SysFont(None,56)
-    timer_text = font.render(f"{timer}",True,BLACK)
+    timer_text = font_medium.render(f"{timer}",True,BLACK)
     text_width,text_height = timer_text.get_size()
-    screen.blit(timer_text,(WIDTH * 0.87,HEIGHT * 0.09))
+    timer_rect = timer_text.get_rect()
+    timer_rect.center = (WIDTH  - 150,80)
+    screen.blit(timer_text,timer_rect)
 
 def GameOver():
     screen.fill(BLACK)
-    font = pygame.font.SysFont(None, 100)
-    gameOver = font.render(f"Game Over",True,WHITE)
+  
+    gameOver = font_large.render(f"Game Over",True,WHITE)
     text_width, text_height = gameOver.get_size()
     screen.blit(gameOver,((WIDTH / 2) - (text_width / 2 ), HEIGHT / 5))
 
-    font = pygame.font.SysFont(None, 60)
-    gameOver = font.render(f"Score Sum: {grape_score + tomato_score + orange_score}",True,WHITE)
+  
+    gameOver = font_medium.render(f"Score Sum: {grape_score + tomato_score + orange_score}",True,WHITE)
     text_width, text_height = gameOver.get_size()
     screen.blit(gameOver,((WIDTH / 2) - (text_width / 2 ), HEIGHT / 3))
 
 
-    font = pygame.font.SysFont(None, 50)
-    gameOver = font.render("Touch Banana To Play Again",True,WHITE)
+ 
+    gameOver = font_medium.render("Touch Banana To Play Again",True,WHITE)
     text_width, text_height = gameOver.get_size()
     screen.blit(gameOver,((WIDTH / 2) - (text_width / 2 ), HEIGHT / 2))
 
