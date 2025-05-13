@@ -8,11 +8,14 @@ grape_score = 0
 tomato_score = 0
 orange_score = 0
 score = 0
+spawn_rate  = 30
 fruits = []
-FRUIT_SIZE = 100
+WIDTH, HEIGHT = 1360, 768
+FRUIT_SIZE = round( WIDTH * 0.0735)
 fruit_speed = 5
 game_over = False;
-max_fruit_in_screen = 8
+font_size =  round(WIDTH * 0.0264)
+max_fruit_in_screen = 80
 
 fruits_name = [
     "Grape",
@@ -29,7 +32,7 @@ fruit_map = {
 
 running = True
 
-WIDTH, HEIGHT = 1360, 768
+
 
 
 # Colors
@@ -114,11 +117,11 @@ class Fruit:
 
     def draw(self):
         if(self.is_hit):
-            screen.blit(self.hit_image,(self.x,self.y))
             self.elapsed_time = (pygame.time.get_ticks() - self.start_tick) / 1000
             self.timer = (0.2 - self.elapsed_time)
             if self.timer <= 0:
                 self.is_dead = True
+            screen.blit(self.hit_image,(self.x,self.y))
         else:
             screen.blit(self.image,(self.x,self.y))
 
@@ -149,7 +152,7 @@ def Generate_Fruit():
     
 
     else:
-        if random.randint(0,30) == 1:
+        if random.randint(1,spawn_rate ) == 1:
             Create_Fruit()
         
        
@@ -219,21 +222,21 @@ def Update_Fruit():
 
 def DisplayScore():
     #Grape
-    font = pygame.font.SysFont(None, 36)
+    font = pygame.font.SysFont(None, font_size)
     score_text = font.render(f"{grape_score}",True,BLACK)
     score_rect = score_text.get_rect()
     score_rect.center = (WIDTH *0.09,HEIGHT * 0.19)
     screen.blit(score_text,score_rect)
     
     #Tomato
-    font = pygame.font.SysFont(None, 36)
+    font = pygame.font.SysFont(None, font_size)
     score_text = font.render(f"{tomato_score}",True,BLACK)
     score_rect = score_text.get_rect()
     score_rect.center = (WIDTH *0.09,HEIGHT * 0.52)
     screen.blit(score_text,score_rect)
     
     #Orange
-    font = pygame.font.SysFont(None, 36)
+    font = pygame.font.SysFont(None, font_size)
     score_text = font.render(f"{orange_score}",True,BLACK)
     score_rect = score_text.get_rect()
     score_rect.center = (WIDTH *0.09,HEIGHT * 0.84)
@@ -306,6 +309,9 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                running = False
         if game_state == state["M"]:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
