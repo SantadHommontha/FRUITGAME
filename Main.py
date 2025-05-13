@@ -10,6 +10,7 @@ pygame.init()
 grape_score = 0
 tomato_score = 0
 orange_score = 0
+mistake_score = 0
 score = 0
 spawn_rate  = 30
 fruits = []
@@ -34,7 +35,7 @@ fruits_name = [
 
 fruit_map = {
     "G": "Grape",
-    "T": "Tomato",
+    "A": "Tomato",
     "O": "Orange"
 }
 
@@ -62,9 +63,9 @@ timer = 0
 
 start_tick = 0
 
-# Serial Setup
+#Serial Setup
 #ser = serial.Serial('COM5', 115200, timeout=0.1)
-#ser = serial.Serial("/dev/ttyAPE0",baudrate=115200,timeout=0.1)
+ser = serial.Serial("/dev/ttyAPE0",baudrate=115200,timeout=0.1)
 
 # MainMenu
 # SetUp
@@ -175,43 +176,59 @@ def Create_Fruit():
 
 
 def Micro_Bit_Serial():
-     if ser.in_waiting > 0:
-        command = ser.readline().decode().strip()
-        print(command)
-        Check_Fruit(command)
+    if game_state == state["M"]:
+         if ser.in_waiting > 0:
+            command = ser.readline().decode().strip()
+            if command in fruit_map:
+                Change_State(state["S"])
+    elif game_state == state["P"]:
+        if ser.in_waiting > 0:
+            command = ser.readline().decode().strip()
+            print(command)
+            Check_Fruit(command)
+    elif game_state == state["G"]:
+        if ser.in_waiting > 0:
+            command = ser.readline().decode().strip()
+            if command in fruit_map:
+                Change_State(state["S"])
 
 def Input_Test(event):
    
-    if event.type == pygame.KEYDOWN:
-        if event.key == pygame.K_g:
-            Check_Fruit("G")
+   
             
-        if event.key == pygame.K_t:
-            Check_Fruit("T")
+    if game_state == state["M"]:
+         if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_g or event.key == pygame.K_t or  event.key == pygame.K_o:
+              Change_State(state["S"])
+    elif game_state == state["P"]:
+         if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_g:
+                Check_Fruit("G")
+            
+            if event.key == pygame.K_t:
+                Check_Fruit("A")
                 
-        if event.key == pygame.K_o:
-            Check_Fruit("O")
+            if event.key == pygame.K_o:
+                Check_Fruit("O")
+    elif game_state == state["G"]:
+         if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_g or event.key == pygame.K_t or  event.key == pygame.K_o:
+              Change_State(state["S"])
 
 def Check_Fruit(input):
-    print(fruit_map[input])
+    print("----------")
     global fruits,score
-    global grape_score,tomato_score,tomato_score,orange_score
+    global grape_score,tomato_score,tomato_score,orange_score,mistake_score
     if len(fruits) == 0 : 
         return
    
     for fruit in fruits[:]:
-       if fruit.name == fruit_map[input] and not fruit.is_hit:
-           fruit.Hit()
-           #fruits.remove(fruit)
-           #score += 1
-           return
-    name = random.choice(fruits_name)
-    if name == "Grape":
-        grape_score -= 1
-    elif name == "Tomato":
-        tomato_score -= 1
-    elif name == "Orange":
-        orange_score -= 1
+        print("GGGGGGGGGG")
+        if fruit.name == fruit_map[input] and not fruit.is_hit:
+            print("JJJJJ")
+            fruit.Hit()
+            return
+    mistake_score += 1
 
 
 
@@ -222,7 +239,7 @@ def Update_Fruit():
     for fruit in fruits[:]:
         fruit.fall()
         fruit.draw()    
-        if fruit.Get_Y_Position() > HEIGHT:
+        if fruit.Get_Y_Position() > HEIGHT and not fruit.is_dead:
             fruits.remove(fruit)
             #hp -= 1
         if fruit.is_dead:
@@ -263,13 +280,13 @@ def GameOver():
     screen.blit(gameOver,((WIDTH / 2) - (text_width / 2 ), HEIGHT / 5))
 
   
-    gameOver = font_medium.render(f"Score Sum: {grape_score + tomato_score + orange_score}",True,WHITE)
+    gameOver = font_medium.render(f"Score Sum: {(grape_score + tomato_score + orange_score) - mistake_score}",True,WHITE)
     text_width, text_height = gameOver.get_size()
     screen.blit(gameOver,((WIDTH / 2) - (text_width / 2 ), HEIGHT / 3))
 
 
  
-    gameOver = font_medium.render("Touch Banana To Play Again",True,WHITE)
+    gameOver = font_medium.render("Touch Any Fruit To Play Again",True,WHITE)
     text_width, text_height = gameOver.get_size()
     screen.blit(gameOver,((WIDTH / 2) - (text_width / 2 ), HEIGHT / 2))
 
@@ -281,7 +298,8 @@ def GameOver():
 
 
 def SetUpGame():
-    global hp,grape_score,tomato_score,orange_score,fruits,game_over,start_tick
+    global hp,grape_score,tomato_score,orange_score,fruits,game_over,start_tick,mistake_score
+    mistake_score = 0
     grape_score = 0
     tomato_score = 0
     orange_score = 0
@@ -319,17 +337,16 @@ while running:
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 running = False
+            
         if game_state == state["M"]:
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_SPACE:
-                    Change_State(state["S"])
+            Input_Test(event)
         elif game_state == state["S"]:
-        
-           
             pass
         elif game_state == state["P"]:
             Input_Test(event)
+            pass
         elif game_state == state["G"]:
+            Input_Test(event)
             pass
     
     
@@ -350,7 +367,7 @@ while running:
             Generate_Fruit()
        
         # Read Micro:bit input
-        #Micro_Bit_Serial()
+            Micro_Bit_Serial()
 
         # Update  fruits
             Update_Fruit()
