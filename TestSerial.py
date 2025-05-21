@@ -1,9 +1,13 @@
 import serial
 
-
-ser = serial.Serial(port="COM5",baudrate=115200,timeout=0.1)
+ser = None
+try:
+    #ser = serial.Serial(port='COM5', baudrate=115200, timeout=0.1) # Windows
+    ser = serial.Serial(port="/dev/ttyAPE0",baudrate=115200,timeout=0.1) # raspberry pi
+except:
+    print("Not Found Micro:bit")
 while True:
-
-    command = ser.readline().decode().strip()
+    if ser.in_waiting:
+        command = ser.readline().decode().strip()
 
     print(command)

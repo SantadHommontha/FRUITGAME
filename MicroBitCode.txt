@@ -9,7 +9,7 @@ pin2_is_Touch = False
 while True:
     if pin0.is_touched() and not pin0_is_Touch:
        display.show(0)
-       uart.write("B")
+       uart.write("G")
        pin0_is_Touch = True
 
     if not pin0.is_touched() and pin0_is_Touch:
@@ -17,7 +17,7 @@ while True:
 
     if pin1.is_touched() and not pin1_is_Touch:
         display.show(1)
-        uart.write("A")
+        uart.write("T")
         pin1_is_Touch = True
 
     if not pin1.is_touched() and pin1_is_Touch:

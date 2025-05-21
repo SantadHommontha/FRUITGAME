@@ -4,10 +4,19 @@ import random
 
 
 pygame.init()
-#Serial Setup
-ser = serial.Serial('COM5', 115200, timeout=0.1) # Windows
-##ser = serial.Serial("/dev/ttyAPE0",baudrate=115200,timeout=0.1) # raspberry pi
 
+#Serial Setup
+ser = None
+try:
+    #Fild Port in Windows use commmad mode in termianl and rasberry pi use ls /dev/tty* in ternimal
+    #In wiodow micro:bit port name Often named COM5 and rasberry pi /dev/ttyACM0
+    #Or Uncomment below for windows or rasberray pi
+    ser = serial.Serial(port='COM5', baudrate=115200, timeout=0.1) # Windows
+    #ser = serial.Serial(port="/dev/ttyAPE0",baudrate=115200,timeout=0.1) # raspberry pi
+except:
+     print("Not Found Micro:bit")
+    
+    
 # Game variables
 # Score
 grape_score = 0
@@ -24,21 +33,21 @@ WIDTH, HEIGHT = 1360, 768
 
 
 # Time
-game_Time = 60
+game_Time = 10
 timer = 0
-start_tick = 0
+start_tick = 0 
 
 # Font
 font_path = "CherryBombOne-Regular.ttf"
-font_small = pygame.font.Font(font_path,36)
-font_medium = pygame.font.Font(font_path,60)
-font_large = pygame.font.Font(font_path,100)
+font_small = pygame.font.Font(font_path,36) # small font
+font_medium = pygame.font.Font(font_path,60) # medium font
+font_large = pygame.font.Font(font_path,100) # large font
 
 # Fruit Properties
-spawn_rate  = 30
-max_fruit_in_screen = 10
-fruits = []
-fruit_speed = 5
+spawn_rate  = 30 
+max_fruit_in_screen = 10 # quantity of fruit at create on screen
+fruits = [] 
+fruit_speed = [5,10,15]
 FRUIT_SIZE = 100
 
 
@@ -50,7 +59,7 @@ fruits_name = [
 
 fruit_map = {
     "G": "Grape",
-    "A": "Tomato",
+    "T": "Tomato",
     "O": "Orange"
 }
 
@@ -179,11 +188,13 @@ def Create_Fruit():
     x = random.randint(130, WIDTH - FRUIT_SIZE)
    
     name = random.choice(fruits_name)
-    speed = random.choice([5,7,8])
+    speed = random.choice(fruit_speed)
     fruits.append(Fruit(x, 0,speed,name,fruit_image[name],fruit_hit_image[name]))
 
 
 def Micro_Bit_Serial():
+    if not ser :
+        return
     if game_state == state["M"]:
          if ser.in_waiting > 0:
             command = ser.readline().decode().strip()
@@ -210,7 +221,7 @@ def Input_Test(event):
             if event.key == pygame.K_g:
                 Check_Fruit("G")
             if event.key == pygame.K_t:
-                Check_Fruit("A")     
+                Check_Fruit("T")     
             if event.key == pygame.K_o:
                 Check_Fruit("O")
     elif game_state == state["G"]:
@@ -280,9 +291,10 @@ def GameOver():
     text_width, text_height = gameOver.get_size()
     screen.blit(gameOver,((WIDTH / 2) - (text_width / 2 ), HEIGHT / 3))
     
-    gameOver = font_medium.render("Touch Any Fruit To Play Again",True,WHITE)
-    text_width, text_height = gameOver.get_size()
-    screen.blit(gameOver,((WIDTH / 2) - (text_width / 2 ), HEIGHT / 2))
+    if timer <= 0:
+        gameOver = font_medium.render("Touch Any Fruit To Play Again",True,WHITE)
+        text_width, text_height = gameOver.get_size()
+        screen.blit(gameOver,((WIDTH / 2) - (text_width / 2 ), HEIGHT / 2))
 
 
 
@@ -298,6 +310,7 @@ def SetUpGame():
     
 def Change_State(new_state):
     global game_state
+    global timer,start_tick
     print(f"New {new_state}")
     game_state = new_state
     if game_state == state["M"]:
@@ -311,13 +324,15 @@ def Change_State(new_state):
     elif game_state == state["P"]:
         pass
     elif game_state == state["G"]:
+        timer = 0
+        start_tick = pygame.time.get_ticks()
         pass
 
 Change_State(state["M"])
 #Toggle_FullScreen()
+
 # Main Loop
 while running:
-    print(game_state)
      # Event handling
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -330,20 +345,22 @@ while running:
             
         if game_state == state["M"]:
             Input_Test(event)
-            Micro_Bit_Serial()
         elif game_state == state["S"]:
             pass
         elif game_state == state["P"]:
             Input_Test(event)
-            pass
+            
         elif game_state == state["G"]:
-            Input_Test(event)
-            pass
+            if(timer <= 0):
+                Input_Test(event)
+            
         
     
     if game_state == state["M"]:
        screen.blit(menu_background,(0,0))
-               
+       # Read Micro:bit serial
+       Micro_Bit_Serial()
+       
     elif game_state == state["S"]:
         pass
     elif game_state == state["P"]:
@@ -357,7 +374,7 @@ while running:
         # Update  fruits
         Update_Fruit()
         
-        # Time
+        # Timer
         elapsed_time = (pygame.time.get_ticks() - start_tick) / 1000
         timer = max(0,game_Time - int(elapsed_time))
 
@@ -369,11 +386,15 @@ while running:
         
     elif game_state == state["G"]:
         GameOver()
-        pass
-    #print(len(fruits))
+        elapsed_time = (pygame.time.get_ticks() - start_tick) / 1000
+        timer = max(0,1.5 - int(elapsed_time))
+        if(timer <= 0):
+            Micro_Bit_Serial()
+        
+       
+        
     #Update Screen
     pygame.display.flip()
     clock.tick(30)
 
 pygame.quit()
-ser.close()
