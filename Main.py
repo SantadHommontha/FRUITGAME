@@ -2,35 +2,26 @@ import pygame
 import serial
 import random
 
-
 pygame.init()
-
 #Serial Setup
 ser = None
 try:
     #Fild Port in Windows use commmad mode in termianl and rasberry pi use ls /dev/tty* in ternimal
     #In wiodow micro:bit port name Often named COM5 and rasberry pi /dev/ttyACM0
     #Or Uncomment below for windows or rasberray pi
-    ser = serial.Serial(port='COM5', baudrate=115200, timeout=0.1) # Windows
-    #ser = serial.Serial(port="/dev/ttyAPE0",baudrate=115200,timeout=0.1) # raspberry pi
+    #ser = serial.Serial(port='COM5', baudrate=115200, timeout=0.1) # Windows
+    ser = serial.Serial(port="/dev/ttyAPE0",baudrate=115200,timeout=0.1) # raspberry pi
 except:
      print("Not Found Micro:bit")
-    
-    
 # Game variables
-# Score
 grape_score = 0
 tomato_score = 0
 orange_score = 0
 mistake_score = 0
-
 is_fullScreen = True
 running = True
-
 # Game Screen Size
 WIDTH, HEIGHT = 1360, 768
-
-
 
 # Time
 game_Time = 10
@@ -50,13 +41,14 @@ fruits = []
 fruit_speed = [5,10,15]
 FRUIT_SIZE = 100
 
-
+# Fruit Name
 fruits_name = [
     "Grape",
     "Tomato",
     "Orange"
 ]
 
+#Used to check the values ​​sent from Microbit.
 fruit_map = {
     "G": "Grape",
     "T": "Tomato",
@@ -191,26 +183,27 @@ def Create_Fruit():
     speed = random.choice(fruit_speed)
     fruits.append(Fruit(x, 0,speed,name,fruit_image[name],fruit_hit_image[name]))
 
-
+# Read values Form MicroBit
 def Micro_Bit_Serial():
+    # if not found MicroBit this Function will Return
     if not ser :
         return
     if game_state == state["M"]:
          if ser.in_waiting > 0:
-            command = ser.readline().decode().strip()
-            if command in fruit_map:
+            microBit_text = ser.readline().decode().strip()
+            if microBit_text in fruit_map:
                 Change_State(state["S"])
     elif game_state == state["P"]:
         if ser.in_waiting > 0:
-            command = ser.readline().decode().strip()
-            print(command)
-            Check_Fruit(command)
+            microBit_text = ser.readline().decode().strip()
+            print(microBit_text)
+            Check_Fruit(microBit_text)
     elif game_state == state["G"]:
         if ser.in_waiting > 0:
-            command = ser.readline().decode().strip()
-            if command in fruit_map:
+            microBit_text = ser.readline().decode().strip()
+            if microBit_text in fruit_map:
                 Change_State(state["S"])
-
+# Test Game With Keyboard
 def Input_Test(event):  
     if game_state == state["M"]:
          if event.type == pygame.KEYDOWN:
@@ -315,9 +308,7 @@ def Change_State(new_state):
     game_state = new_state
     if game_state == state["M"]:
         screen.blit(menu_background,(0,0))
-        
     elif game_state == state["S"]:
-        
         SetUpGame()
         Change_State(state["P"])
         pass
@@ -326,7 +317,7 @@ def Change_State(new_state):
     elif game_state == state["G"]:
         timer = 0
         start_tick = pygame.time.get_ticks()
-        pass
+        
 
 Change_State(state["M"])
 #Toggle_FullScreen()
